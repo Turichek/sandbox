@@ -18,45 +18,31 @@ class Lists {
   constructor() {
     this.selectedList = -1;
     this.lists = [];
-    this.html = `
-    <ul id="lists" class="m-0 p-2">
-      <li id="addlist" class="p-1">
-        <div>
-          <input id="listname" type="text" />
-          <button id="addlistbutton">Add</button>
-        </div>
-      </li>
-    </ul>`;
   }
 
   Select = (e) => {
     for (let i = 0; i < this.lists.length; i++) {
-      console.log(this.selectedList);
+      /*console.log(this.selectedList);
       console.log(e.target);
-      console.log(e.target.id);
+      console.log(e.target.id);*/
 
       if (e.target.id == i) {
         this.lists[i].isSelect = true;
         this.selectedList = i;
       } else this.lists[i].isSelect = false;
-      console.log(this.lists);
+
+      //console.log(this.lists);
     }
   };
 
   AddNewList = (e) => {
-    const lastElem = document.querySelector("#addlist");
-    const parentElem = lastElem.parentNode;
     const name = document.querySelector("#listname").value;
 
     if (name !== "") {
       const list = new List(idList++, name);
       this.lists.push(list);
-      const elem = document.createElement("li");
-      elem.id = list.id;
-      elem.textContent = list.name;
-      elem.addEventListener("click", this.Select);
 
-      parentElem.insertBefore(elem, lastElem);
+      addLi(list, document.querySelector("#addlist"), 1);
 
       if (this.lists.length === 1) {
         this.lists[0].isSelect = true;
@@ -66,6 +52,51 @@ class Lists {
       console.log(this.lists);
     }
   };
+}
+
+function addHtmlForUl(ul_name, li_name, input_name, button_name) {
+  return (
+    `<ul id="` +
+    ul_name +
+    `" class="m-0 p-2">
+    <li id="` +
+    li_name +
+    `" class="p-1">
+      <div>
+        <input id="` +
+    input_name +
+    `" type="text" />
+        <button id="` +
+    button_name +
+    `">Add</button>
+      </div>
+    </li>
+  </ul>`
+  );
+}
+
+function addLi(list, lastElem, toWhat) {
+  const parentElem = lastElem.parentNode;
+  const elem = document.createElement("li");
+
+  switch (toWhat) {
+    case 1:
+      elem.id = list.id;
+      elem.textContent = list.name;
+      elem.addEventListener("click", lists.Select);
+      parentElem.insertBefore(elem, lastElem);
+      break;
+
+    case 2:
+      elem.id = list.id;
+      elem.addEventListener("click", lists.Select);
+
+      parentElem.insertBefore(elem, lastElem);
+      break;
+
+    default:
+      break;
+  }
 }
 
 let idList = 0;
@@ -78,7 +109,12 @@ for (let i = 0; i < lists.length; i++) {
   console.log(lists[i].name);
 }*/
 
-document.querySelector("#for_list").innerHTML = lists.html;
+document.querySelector("#for_list").innerHTML = addHtmlForUl(
+  "lists",
+  "addlist",
+  "listname",
+  "addlistbutton"
+);
 document
   .querySelector("#addlistbutton")
   .addEventListener("click", lists.AddNewList);
