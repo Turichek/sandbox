@@ -4,6 +4,15 @@
 .b1 {
   border: 1px solid black;
 }
-/*#lists {
-  height: 100%;
-}*/
+#addlist {
+  width: 260px;
+}
+ul {
+  list-style-type: none;
+}
+#for_list li:hover {
+  background-color: burlywood;
+}
+#for_list li {
+  text-align: center;
+}
