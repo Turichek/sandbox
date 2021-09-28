@@ -14,29 +14,72 @@ class List {
   }
 
   upElem = (e) => {
-    console.log(e.target.parentNode.previousSibling);
+    const id_thisElem = this.findElem(e.target.parentNode.firstChild.innerText);
+    const id_prevElem = this.findElem(
+      e.target.parentNode.previousSibling.firstChild.innerText
+    );
+
+    const temp = this.elems[id_thisElem];
+    this.elems[id_thisElem] = this.elems[id_prevElem];
+    this.elems[id_prevElem] = temp;
+
+    this.viewElems();
   };
 
   downElem = (e) => {
-    console.log(e.target.parentNode.nextSibling);
-    e.target.parentNode.insertBefore(e.target, e.target.parentNode.firstChild);
+    const id_thisElem = this.findElem(e.target.parentNode.firstChild.innerText);
+    const id_nextElem = this.findElem(
+      e.target.parentNode.nextSibling.firstChild.innerText
+    );
+
+    const temp = this.elems[id_thisElem];
+    this.elems[id_thisElem] = this.elems[id_nextElem];
+    this.elems[id_nextElem] = temp;
+
+    this.viewElems();
   };
 
   removeElem = (e) => {
+    this.elems.splice(
+      this.findElem(e.target.parentNode.firstChild.innerText),
+      1
+    );
+    e.target.parentNode.remove();
+  };
+
+  findElem(elem) {
     for (let i = 0; i < this.elems.length; i++) {
-      if (
-        this.elems[i].name ==
-        e.target.parentNode.innerText.replace("UpDownRemove", "")
-      ) {
-        this.elems.splice(i, i);
-        break;
+      if (this.elems[i].name == elem) {
+        return i;
       }
     }
-    e.target.parentNode.remove();
-    console.log(this.elems);
+  }
+
+  addSublist = (e) => {
+    const new_sublist = new List(idSublist, "sublist" + idSublist++);
+    const id_elem = this.findElem(e.target.parentNode.firstChild.innerText);
+
+    this.elems[id_elem].sublist = new_sublist;
+
+    console.log(e.target.parentNode.parentNode.id);
+    addHtmlForUl(
+      "list" + new_sublist.name,
+      "addto" + new_sublist.name,
+      "elemname" + new_sublist.name,
+      "addbutton" + new_sublist.name,
+      new_sublist.addElem,
+      document.querySelector("#" + e.target.parentNode.id)
+    );
+    console.log(1);
+  };
+
+  deleteSublist = (e) => {
+    const new_sublist = new List(idSublist, e.target.textContent + idSublist++);
+    const id_elem = this.findElem(e.target.parentNode.firstChild.innerText);
   };
 
   addElem = (e) => {
+    console.log("addElem ");
     const name = document.querySelector("#elemname" + this.name).value;
     const elem = new Elem(idElem++, name);
     this.elems.push(elem);
@@ -44,9 +87,10 @@ class List {
     addLiElem(elem, document.querySelector("#addto" + this.name), [
       this.upElem,
       this.downElem,
-      this.removeElem
+      this.removeElem,
+      this.addSublist,
+      this.deleteSublist
     ]);
-    console.log("addElem " + document.querySelector("#for_elems").firstChild);
   };
 
   viewElems() {
@@ -65,7 +109,9 @@ class List {
       addLiElem(this.elems[i], document.querySelector("#addto" + this.name), [
         this.upElem,
         this.downElem,
-        this.removeElem
+        this.removeElem,
+        this.addSublist,
+        this.deleteSublist
       ]);
     }
   }
@@ -147,25 +193,6 @@ function addHtmlForUl(ul_id, li_id, input_id, button_id, func, parentElem) {
   li.appendChild(div);
   ul.appendChild(li);
   parentElem.appendChild(ul);
-
-  /*return (
-    `<ul id="` +
-    ul_name +
-    `" class="m-0 p-2">
-    <li id="` +
-    li_name +
-    `" class="p-1">
-      <div>
-        <input id="` +
-    input_name +
-    `" type="text" />
-        <button id="` +
-    button_name +
-    `">Add</button>
-      </div>
-    </li>
-  </ul>`
-  );*/
 }
 
 function addLiList(item, lastElem) {
@@ -179,40 +206,56 @@ function addLiList(item, lastElem) {
 
 function addLiElem(item, lastElem, func) {
   const parentElem = lastElem.parentNode;
+
   const elem = document.createElement("li");
-
   elem.id = parentElem.id + item.name;
-  elem.textContent = item.name;
 
-  const up = document.createElement("button");
-  up.id = parentElem.id + item.name + "up";
-  up.textContent = "Up";
-  up.onclick = func[0];
+  const span = document.createElement("span");
+  span.textContent = item.name;
 
-  const down = document.createElement("button");
-  down.id = parentElem.id + item.name + "down";
-  down.textContent = "Down";
-  down.onclick = func[1];
+  const up = addButtonToLi(parentElem.id + item.name + "up", "Up", func[0]);
+  const down = addButtonToLi(
+    parentElem.id + item.name + "down",
+    "Down",
+    func[1]
+  );
+  const remove = addButtonToLi(
+    parentElem.id + item.name + "remove",
+    "Remove",
+    func[2]
+  );
+  const addsublist = addButtonToLi(
+    parentElem.id + item.name + "addsublist",
+    "AddSublist",
+    func[3]
+  );
+  const deletesublist = addButtonToLi(
+    parentElem.id + item.name + "deletesublist",
+    "DeleteSublist",
+    func[4]
+  );
 
-  const remove = document.createElement("button");
-  remove.id = parentElem.id + item.name + "remove";
-  remove.textContent = "Remove";
-  remove.onclick = func[2];
-
+  elem.appendChild(span);
   elem.appendChild(up);
   elem.appendChild(down);
   elem.appendChild(remove);
+  elem.appendChild(addsublist);
+  elem.appendChild(deletesublist);
   parentElem.insertBefore(elem, lastElem);
+}
+
+function addButtonToLi(id, text, func) {
+  const button = document.createElement("button");
+  button.id = id;
+  button.textContent = text;
+  button.onclick = func;
+  return button;
 }
 
 let idList = 0;
 let idElem = 0;
+let idSublist = 0;
 let lists = new Lists();
-
-/*let lists = [new List("1"), new List("2"), new List("3")];
-for (let i = 0; i < lists.length; i++) {
-  console.log(lists[i].name);
-}*/
 
 addHtmlForUl(
   "lists",
@@ -222,5 +265,3 @@ addHtmlForUl(
   lists.addNewList,
   document.querySelector("#for_list")
 );
-
-//document.querySelector("#addbutton").onclick = ;
