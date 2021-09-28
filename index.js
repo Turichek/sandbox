@@ -23,7 +23,7 @@ class List {
     this.elems[id_thisElem] = this.elems[id_prevElem];
     this.elems[id_prevElem] = temp;
 
-    this.viewElems();
+    this.viewElems(document.querySelector("#for_elems"));
   };
 
   downElem = (e) => {
@@ -36,7 +36,7 @@ class List {
     this.elems[id_thisElem] = this.elems[id_nextElem];
     this.elems[id_nextElem] = temp;
 
-    this.viewElems();
+    this.viewElems(document.querySelector("#for_elems"));
   };
 
   removeElem = (e) => {
@@ -44,7 +44,7 @@ class List {
       this.findElem(e.target.parentNode.firstChild.innerText),
       1
     );
-    e.target.parentNode.remove();
+    this.viewElems(document.querySelector("#for_elems"));
   };
 
   findElem(elem) {
@@ -56,21 +56,22 @@ class List {
   }
 
   addSublist = (e) => {
-    const new_sublist = new List(idSublist, "sublist" + idSublist++);
+    const new_sublist = new List(
+      idSublist++,
+      e.target.parentNode.id + "sublist"
+    );
     const id_elem = this.findElem(e.target.parentNode.firstChild.innerText);
 
     this.elems[id_elem].sublist = new_sublist;
-
-    console.log(e.target.parentNode.parentNode.id);
-    addHtmlForUl(
+    this.viewElems(document.querySelector("#for_elems"));
+    /*addHtmlForUl(
       "list" + new_sublist.name,
       "addto" + new_sublist.name,
       "elemname" + new_sublist.name,
       "addbutton" + new_sublist.name,
       new_sublist.addElem,
-      document.querySelector("#" + e.target.parentNode.id)
-    );
-    console.log(1);
+      document.querySelector("#"+e.target.parentNode.id)
+    );*/
   };
 
   deleteSublist = (e) => {
@@ -84,25 +85,19 @@ class List {
     const elem = new Elem(idElem++, name);
     this.elems.push(elem);
 
-    addLiElem(elem, document.querySelector("#addto" + this.name), [
-      this.upElem,
-      this.downElem,
-      this.removeElem,
-      this.addSublist,
-      this.deleteSublist
-    ]);
+    this.viewElems(document.querySelector("#for_elems"));
   };
 
-  viewElems() {
-    console.log(this.name + " viewElems");
-    deleteViewElems();
+  viewElems(elem) {
+    //const elem = document.querySelector("#for_elems");
+    deleteViewElems(elem);
     addHtmlForUl(
       "list" + this.name,
       "addto" + this.name,
       "elemname" + this.name,
       "addbutton" + this.name,
       this.addElem,
-      document.querySelector("#for_elems")
+      elem
     );
     for (let i = 0; i < this.elems.length; i++) {
       console.log(1);
@@ -113,6 +108,12 @@ class List {
         this.addSublist,
         this.deleteSublist
       ]);
+      if (this.elems[i].sublist != null) {
+        const liForSublist = document.querySelector(
+          "#" + this.name.replace("sublist", "")
+        );
+        this.elems[i].sublist.viewElems(liForSublist);
+      }
     }
   }
 }
@@ -130,7 +131,9 @@ class Lists {
         this.selectedListId = i;
       }
     }
-    this.lists[this.selectedListId].viewElems();
+    this.lists[this.selectedListId].viewElems(
+      document.querySelector("#for_elems")
+    );
 
     console.log(this.lists);
   };
@@ -143,7 +146,7 @@ class Lists {
       this.lists.push(list);
 
       addLiList(list, document.querySelector("#addtolist"));
-      deleteViewElems();
+      deleteViewElems(document.querySelector("#for_elems"));
       addHtmlForUl(
         "list" + list.name,
         "addto" + list.name,
@@ -158,12 +161,15 @@ class Lists {
   };
 }
 
-function deleteViewElems() {
+function deleteViewElems(elem) {
   console.log("deleteViewElems");
-  console.log(document.querySelector("#for_elems").firstChild);
 
-  if (document.querySelector("#for_elems").firstChild) {
-    document.querySelector("#for_elems").firstChild.remove();
+  if (elem.lastChild != null) {
+    if (elem.lastChild.tagName == "button") {
+    }
+  }
+  if (elem.firstChild) {
+    elem.firstChild.remove();
   }
 }
 
@@ -206,6 +212,7 @@ function addLiList(item, lastElem) {
 
 function addLiElem(item, lastElem, func) {
   const parentElem = lastElem.parentNode;
+  console.log(parentElem.id + " addLiElem");
 
   const elem = document.createElement("li");
   elem.id = parentElem.id + item.name;
