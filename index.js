@@ -14,29 +14,21 @@ class List {
   }
 
   upElem = (e) => {
-    const id_thisElem = this.findElem(e.target.parentNode.firstChild.innerText);
-    const id_prevElem = this.findElem(
-      e.target.parentNode.previousSibling.firstChild.innerText
-    );
-
-    const temp = this.elems[id_thisElem];
-    this.elems[id_thisElem] = this.elems[id_prevElem];
-    this.elems[id_prevElem] = temp;
-
-    this.viewElems(document.querySelector("#for_elems"));
+    try {
+      const id_prevElem = this.findElem(
+        e.target.parentNode.previousSibling.firstChild.innerText
+      );
+      this.moveElem(id_prevElem, e);
+    } catch (e) {
+      alert("Этот элемент нельзя поднять выше по списку");
+    }
   };
 
   downElem = (e) => {
-    const id_thisElem = this.findElem(e.target.parentNode.firstChild.innerText);
     const id_nextElem = this.findElem(
       e.target.parentNode.nextSibling.firstChild.innerText
     );
-
-    const temp = this.elems[id_thisElem];
-    this.elems[id_thisElem] = this.elems[id_nextElem];
-    this.elems[id_nextElem] = temp;
-
-    this.viewElems(document.querySelector("#for_elems"));
+    this.moveElem(id_nextElem, e);
   };
 
   removeElem = (e) => {
@@ -44,8 +36,29 @@ class List {
       this.findElem(e.target.parentNode.firstChild.innerText),
       1
     );
-    this.viewElems(document.querySelector("#for_elems"));
+    viewElems(
+      document.querySelector("#" + e.target.parentNode.parentNode.id),
+      this
+    );
   };
+
+  moveElem(id_Elem, e) {
+    if (id_Elem == undefined || id_Elem == null) {
+      alert("Этот элемент нельзя опустить ниже по списку");
+    } else {
+      const id_thisElem = this.findElem(
+        e.target.parentNode.firstChild.innerText
+      );
+      const temp = this.elems[id_thisElem];
+      this.elems[id_thisElem] = this.elems[id_Elem];
+      this.elems[id_Elem] = temp;
+
+      viewElems(
+        document.querySelector("#" + e.target.parentNode.parentNode.id),
+        this
+      );
+    }
+  }
 
   findElem(elem) {
     for (let i = 0; i < this.elems.length; i++) {
@@ -62,60 +75,37 @@ class List {
     );
     const id_elem = this.findElem(e.target.parentNode.firstChild.innerText);
 
-    this.elems[id_elem].sublist = new_sublist;
-    this.viewElems(document.querySelector("#for_elems"));
-    /*addHtmlForUl(
-      "list" + new_sublist.name,
-      "addto" + new_sublist.name,
-      "elemname" + new_sublist.name,
-      "addbutton" + new_sublist.name,
-      new_sublist.addElem,
-      document.querySelector("#"+e.target.parentNode.id)
-    );*/
+    if (this.elems[id_elem].sublist == null) {
+      this.elems[id_elem].sublist = new_sublist;
+      viewElems(
+        document.querySelector("#" + e.target.parentNode.id),
+        this.elems[id_elem].sublist
+      );
+    } else alert("У этого элемента уже есть дочерний список");
   };
 
   deleteSublist = (e) => {
-    const new_sublist = new List(idSublist, e.target.textContent + idSublist++);
     const id_elem = this.findElem(e.target.parentNode.firstChild.innerText);
+
+    if (this.elems[id_elem].sublist != null) {
+      this.elems[id_elem].sublist = null;
+      viewElems(
+        document.querySelector("#" + e.target.parentNode.parentNode.id),
+        this
+      );
+    } else alert("У этого элемента нет дочернего списка");
   };
 
   addElem = (e) => {
-    console.log("addElem ");
     const name = document.querySelector("#elemname" + this.name).value;
     const elem = new Elem(idElem++, name);
     this.elems.push(elem);
 
-    this.viewElems(document.querySelector("#for_elems"));
-  };
-
-  viewElems(elem) {
-    //const elem = document.querySelector("#for_elems");
-    deleteViewElems(elem);
-    addHtmlForUl(
-      "list" + this.name,
-      "addto" + this.name,
-      "elemname" + this.name,
-      "addbutton" + this.name,
-      this.addElem,
-      elem
+    viewElems(
+      document.querySelector("#" + e.target.parentNode.parentNode.id),
+      this
     );
-    for (let i = 0; i < this.elems.length; i++) {
-      console.log(1);
-      addLiElem(this.elems[i], document.querySelector("#addto" + this.name), [
-        this.upElem,
-        this.downElem,
-        this.removeElem,
-        this.addSublist,
-        this.deleteSublist
-      ]);
-      if (this.elems[i].sublist != null) {
-        const liForSublist = document.querySelector(
-          "#" + this.name.replace("sublist", "")
-        );
-        this.elems[i].sublist.viewElems(liForSublist);
-      }
-    }
-  }
+  };
 }
 
 class Lists {
@@ -125,17 +115,15 @@ class Lists {
   }
 
   Select = (e) => {
-    console.log("selList" + this.selectedListId);
     for (let i = 0; i < this.lists.length; i++) {
       if (e.target.id == this.lists[i].name) {
         this.selectedListId = i;
       }
     }
-    this.lists[this.selectedListId].viewElems(
-      document.querySelector("#for_elems")
+    viewElems(
+      document.querySelector("#for_elems"),
+      this.lists[this.selectedListId]
     );
-
-    console.log(this.lists);
   };
 
   addNewList = (e) => {
@@ -146,29 +134,64 @@ class Lists {
       this.lists.push(list);
 
       addLiList(list, document.querySelector("#addtolist"));
-      deleteViewElems(document.querySelector("#for_elems"));
-      addHtmlForUl(
-        "list" + list.name,
-        "addto" + list.name,
-        "elemname" + list.name,
-        "addbutton" + list.name,
-        list.addElem,
-        document.querySelector("#for_elems")
-      );
-
       this.selectedListId = list.id;
+      viewElems(document.querySelector("#for_elems"), list);
     }
   };
 }
 
-function deleteViewElems(elem) {
-  console.log("deleteViewElems");
+function viewElems(elem, list) {
+  deleteViewElems(elem);
+  if (
+    document.querySelector("#" + elem.id) == null &&
+    elem.id == "list" + list.name.replace("sublist", "")
+  ) {
+    elem = document.querySelector("#for_elems");
+  } else if (
+    document.querySelector("#" + elem.id) == null &&
+    elem.id == "list" + list.name
+  ) {
+    elem = document.querySelector(
+      "#" + list.name.replace(new RegExp("sublist" + "$"), "")
+    );
+  }
 
-  if (elem.lastChild != null) {
-    if (elem.lastChild.tagName == "button") {
+  addHtmlForUl(
+    "list" + list.name,
+    "addto" + list.name,
+    "elemname" + list.name,
+    "addbutton" + list.name,
+    list.addElem,
+    elem
+  );
+
+  for (let i = 0; i < list.elems.length; i++) {
+    addLiElem(list.elems[i], document.querySelector("#addto" + list.name), [
+      list.upElem,
+      list.downElem,
+      list.removeElem,
+      list.addSublist,
+      list.deleteSublist
+    ]);
+    if (list.elems[i].sublist != null) {
+      const liForSublist = document.querySelector(
+        "#" +
+          list.elems[i].sublist.name.replace(new RegExp("sublist" + "$"), "")
+      );
+      viewElems(liForSublist, list.elems[i].sublist);
     }
   }
-  if (elem.firstChild) {
+}
+
+function deleteViewElems(elem) {
+  if (elem.lastChild != null) {
+    if (elem.lastChild.tagName == "BUTTON") {
+    } else if (elem.lastChild.tagName == "LI") {
+      elem.remove();
+    } else if (elem.firstChild) {
+      elem.firstChild.remove();
+    }
+  } else if (elem.firstChild) {
     elem.firstChild.remove();
   }
 }
@@ -176,27 +199,21 @@ function deleteViewElems(elem) {
 function addHtmlForUl(ul_id, li_id, input_id, button_id, func, parentElem) {
   const ul = document.createElement("ul");
   const li = document.createElement("li");
-  const div = document.createElement("div");
   const input = document.createElement("input");
-  const button = document.createElement("button");
+  const button = addButtonToLi(button_id, "Add Element", func, "btn-warning");
 
   ul.id = ul_id;
-  ul.classList.add("m-0", "p-2");
-  ul.name = ul_id.replace("list", "");
+  ul.classList.add("m-0", "p-2", "b1");
 
   li.id = li_id;
-  li.classList.add("p-1");
+  li.classList.add("p-2");
 
   input.id = input_id;
   input.type = "text";
+  input.classList.add("form-control", "w-250px");
 
-  button.id = button_id;
-  button.onclick = func;
-  button.textContent = "Add";
-
-  div.appendChild(input);
-  div.appendChild(button);
-  li.appendChild(div);
+  li.appendChild(input);
+  li.appendChild(button);
   ul.appendChild(li);
   parentElem.appendChild(ul);
 }
@@ -212,7 +229,6 @@ function addLiList(item, lastElem) {
 
 function addLiElem(item, lastElem, func) {
   const parentElem = lastElem.parentNode;
-  console.log(parentElem.id + " addLiElem");
 
   const elem = document.createElement("li");
   elem.id = parentElem.id + item.name;
@@ -220,26 +236,35 @@ function addLiElem(item, lastElem, func) {
   const span = document.createElement("span");
   span.textContent = item.name;
 
-  const up = addButtonToLi(parentElem.id + item.name + "up", "Up", func[0]);
+  const up = addButtonToLi(
+    parentElem.id + item.name + "up",
+    "Up",
+    func[0],
+    "btn-warning"
+  );
   const down = addButtonToLi(
     parentElem.id + item.name + "down",
     "Down",
-    func[1]
+    func[1],
+    "btn-warning"
   );
   const remove = addButtonToLi(
     parentElem.id + item.name + "remove",
     "Remove",
-    func[2]
+    func[2],
+    "btn-danger"
   );
   const addsublist = addButtonToLi(
     parentElem.id + item.name + "addsublist",
-    "AddSublist",
-    func[3]
+    "Add Sublist",
+    func[3],
+    "btn-primary"
   );
   const deletesublist = addButtonToLi(
     parentElem.id + item.name + "deletesublist",
-    "DeleteSublist",
-    func[4]
+    "Delete Sublist",
+    func[4],
+    "btn-danger"
   );
 
   elem.appendChild(span);
@@ -251,10 +276,11 @@ function addLiElem(item, lastElem, func) {
   parentElem.insertBefore(elem, lastElem);
 }
 
-function addButtonToLi(id, text, func) {
+function addButtonToLi(id, text, func, clas) {
   const button = document.createElement("button");
   button.id = id;
   button.textContent = text;
+  button.classList.add("btn", clas, "b1");
   button.onclick = func;
   return button;
 }

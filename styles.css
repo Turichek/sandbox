@@ -1,21 +1,45 @@
-.color1 {
-  background-color: bisque;
-}
-.b1 {
-  border: 1px solid black;
-}
-#addtolist {
-  width: 260px;
-}
 ul {
   list-style-type: none;
 }
+span {
+  padding-right: 20px;
+  padding-left: 20px;
+}
+
 #for_list li:hover {
   background-color: burlywood;
 }
 #for_list li {
   text-align: center;
 }
+
+.ta-center {
+  text-align: center;
+}
 .hMax {
   height: 100%;
+}
+.color1 {
+  background-color: bisque;
+}
+.color2 {
+  background-color: lightgray;
+}
+.color3 {
+  background-color: burlywood;
+}
+.b1 {
+  border: 1px solid black;
+}
+.dNone {
+  display: none;
+}
+.dInlineBlock {
+  display: none;
+}
+.w-250px {
+  width: 250px;
+}
+.w-270px {
+  width: 284px;
 }
