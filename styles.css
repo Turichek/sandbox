@@ -12,6 +12,9 @@ span {
 #for_list li {
   text-align: center;
 }
+#addtolist {
+  width: 395px;
+}
 
 .ta-center {
   text-align: center;
@@ -42,4 +45,7 @@ span {
 }
 .w-270px {
   width: 284px;
+}
+.hidden {
+  visibility: hidden;
 }
