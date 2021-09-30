@@ -16,7 +16,7 @@ class List {
   upElem = (e) => {
     try {
       const id_prevElem = this.findElem(
-        e.target.parentNode.previousSibling.firstChild.innerText
+        this.nameElem(e.target.parentNode.previousSibling)
       );
       this.moveElem(id_prevElem, e);
     } catch (e) {
@@ -26,66 +26,37 @@ class List {
 
   downElem = (e) => {
     const id_nextElem = this.findElem(
-      e.target.parentNode.nextSibling.firstChild.innerText
+      this.nameElem(e.target.parentNode.nextSibling)
     );
     this.moveElem(id_nextElem, e);
   };
 
   removeElem = (e) => {
-    this.elems.splice(
-      this.findElem(e.target.parentNode.firstChild.innerText),
-      1
-    );
+    this.elems.splice(this.findElem(this.nameElem(e.target.parentNode)), 1);
     viewElems(
       document.querySelector("#" + e.target.parentNode.parentNode.id),
       this
     );
   };
 
-  moveElem(id_Elem, e) {
-    if (id_Elem == undefined || id_Elem == null) {
-      alert("Этот элемент нельзя опустить ниже по списку");
-    } else {
-      const id_thisElem = this.findElem(
-        e.target.parentNode.firstChild.innerText
-      );
-      const temp = this.elems[id_thisElem];
-      this.elems[id_thisElem] = this.elems[id_Elem];
-      this.elems[id_Elem] = temp;
-
-      viewElems(
-        document.querySelector("#" + e.target.parentNode.parentNode.id),
-        this
-      );
-    }
-  }
-
-  findElem(elem) {
-    for (let i = 0; i < this.elems.length; i++) {
-      if (this.elems[i].name == elem) {
-        return i;
-      }
-    }
-  }
-
   addSublist = (e) => {
     const new_sublist = new List(
       idSublist++,
       e.target.parentNode.id + "sublist"
     );
-    const id_elem = this.findElem(e.target.parentNode.firstChild.innerText);
+    const id_elem = this.findElem(this.nameElem(e.target.parentNode));
 
     if (this.elems[id_elem].sublist == null) {
       this.elems[id_elem].sublist = new_sublist;
       viewElems(
-        document.querySelector("#" + e.target.parentNode.id),
-        this.elems[id_elem].sublist
+        document.querySelector("#" + e.target.parentNode.parentNode.id),
+        this
       );
     } else alert("У этого элемента уже есть дочерний список");
   };
 
   deleteSublist = (e) => {
-    const id_elem = this.findElem(e.target.parentNode.firstChild.innerText);
+    const id_elem = this.findElem(this.nameElem(e.target.parentNode));
 
     if (this.elems[id_elem].sublist != null) {
       this.elems[id_elem].sublist = null;
@@ -106,6 +77,35 @@ class List {
       this
     );
   };
+
+  moveElem(id_Elem, e) {
+    if (id_Elem == undefined || id_Elem == null) {
+      alert("Этот элемент нельзя опустить ниже по списку");
+    } else {
+      const id_thisElem = this.findElem(this.nameElem(e.target.parentNode));
+      const temp = this.elems[id_thisElem];
+      this.elems[id_thisElem] = this.elems[id_Elem];
+      this.elems[id_Elem] = temp;
+
+      viewElems(
+        document.querySelector("#" + e.target.parentNode.parentNode.id),
+        this
+      );
+    }
+  }
+
+  nameElem(e) {
+    const str = e.firstChild.innerText + e.firstChild.nextSibling.innerText;
+    return str;
+  }
+
+  findElem(elem) {
+    for (let i = 0; i < this.elems.length; i++) {
+      if (this.elems[i].name + this.elems[i].id == elem) {
+        return i;
+      }
+    }
+  }
 }
 
 class Lists {
@@ -166,13 +166,32 @@ function viewElems(elem, list) {
   );
 
   for (let i = 0; i < list.elems.length; i++) {
-    addLiElem(list.elems[i], document.querySelector("#addto" + list.name), [
-      list.upElem,
-      list.downElem,
-      list.removeElem,
-      list.addSublist,
-      list.deleteSublist
-    ]);
+    const hideButton = [];
+
+    if (list.elems[i] == list.elems[0]) {
+      hideButton.push("upElem");
+    }
+    if (list.elems[i] == list.elems[list.elems.length - 1]) {
+      hideButton.push("downElem");
+    }
+    if (list.elems[i].sublist != null) {
+      hideButton.push("addSublist");
+    } else {
+      hideButton.push("deleteSublist");
+    }
+
+    addLiElem(
+      list.elems[i],
+      document.querySelector("#addto" + list.name),
+      [
+        list.upElem,
+        list.downElem,
+        list.removeElem,
+        list.addSublist,
+        list.deleteSublist
+      ],
+      hideButton
+    );
     if (list.elems[i].sublist != null) {
       const liForSublist = document.querySelector(
         "#" +
@@ -206,7 +225,7 @@ function addHtmlForUl(ul_id, li_id, input_id, button_id, func, parentElem) {
   ul.classList.add("m-0", "p-2", "b1");
 
   li.id = li_id;
-  li.classList.add("p-2");
+  li.classList.add("p-2", "d-flex");
 
   input.id = input_id;
   input.type = "text";
@@ -221,53 +240,69 @@ function addHtmlForUl(ul_id, li_id, input_id, button_id, func, parentElem) {
 function addLiList(item, lastElem) {
   const parentElem = lastElem.parentNode;
   const elem = document.createElement("li");
+
   elem.id = item.name;
   elem.textContent = item.name;
   elem.onclick = lists.Select;
+
   parentElem.insertBefore(elem, lastElem);
 }
 
-function addLiElem(item, lastElem, func) {
+function addLiElem(item, lastElem, func, hide) {
   const parentElem = lastElem.parentNode;
-
   const elem = document.createElement("li");
-  elem.id = parentElem.id + item.name;
-
   const span = document.createElement("span");
-  span.textContent = item.name;
-
+  const span_hide = document.createElement("span");
   const up = addButtonToLi(
-    parentElem.id + item.name + "up",
+    parentElem.id + item.name + item.id + "up",
     "Up",
     func[0],
     "btn-warning"
   );
   const down = addButtonToLi(
-    parentElem.id + item.name + "down",
+    parentElem.id + item.name + item.id + "down",
     "Down",
     func[1],
     "btn-warning"
   );
   const remove = addButtonToLi(
-    parentElem.id + item.name + "remove",
+    parentElem.id + item.name + item.id + "remove",
     "Remove",
     func[2],
     "btn-danger"
   );
   const addsublist = addButtonToLi(
-    parentElem.id + item.name + "addsublist",
+    parentElem.id + item.name + item.id + "addsublist",
     "Add Sublist",
     func[3],
     "btn-primary"
   );
   const deletesublist = addButtonToLi(
-    parentElem.id + item.name + "deletesublist",
+    parentElem.id + item.name + item.id + "deletesublist",
     "Delete Sublist",
     func[4],
     "btn-danger"
   );
+  const buttons = [up, down, remove, addsublist, deletesublist];
+
+  elem.id =
+    parentElem.id + item.name.replace(new RegExp(" ", "g"), "") + item.id;
+
+  span.textContent = item.name;
+
+  span_hide.classList.add("dNone");
+  span_hide.textContent = item.id;
+
+  for (let i = 0; i < hide.length; i++) {
+    for (let j = 0; j < buttons.length; j++) {
+      if (hide[i] == buttons[j].onclick.name) {
+        buttons[j].classList.add("dNone");
+      }
+    }
+  }
 
   elem.appendChild(span);
+  elem.appendChild(span_hide);
   elem.appendChild(up);
   elem.appendChild(down);
   elem.appendChild(remove);
@@ -278,10 +313,12 @@ function addLiElem(item, lastElem, func) {
 
 function addButtonToLi(id, text, func, clas) {
   const button = document.createElement("button");
+
   button.id = id;
   button.textContent = text;
-  button.classList.add("btn", clas, "b1");
+  button.classList.add("btn", clas, "b1", "mx-1");
   button.onclick = func;
+
   return button;
 }
 
