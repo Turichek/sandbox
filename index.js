@@ -54,7 +54,7 @@ class List {
       );
     } else alert("У этого элемента уже есть дочерний список");
   };
-
+  
   deleteSublist = (e) => {
     const id_elem = this.findElem(this.nameElem(e.target.parentNode));
 
