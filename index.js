@@ -54,7 +54,7 @@ class List {
       );
     } else alert("У этого элемента уже есть дочерний список");
   };
-  
+
   deleteSublist = (e) => {
     const id_elem = this.findElem(this.nameElem(e.target.parentNode));
 
@@ -68,14 +68,16 @@ class List {
   };
 
   addElem = (e) => {
-    const name = document.querySelector("#elemname" + this.name).value;
-    const elem = new Elem(idElem++, name);
-    this.elems.push(elem);
+    if (document.querySelector("#elemname" + this.name).value != "") {
+      const name = document.querySelector("#elemname" + this.name).value;
+      const elem = new Elem(idElem++, name);
+      this.elems.push(elem);
 
-    viewElems(
-      document.querySelector("#" + e.target.parentNode.parentNode.id),
-      this
-    );
+      viewElems(
+        document.querySelector("#" + e.target.parentNode.parentNode.id),
+        this
+      );
+    } else alert("Напишите название для элемента");
   };
 
   moveElem(id_Elem, e) {
